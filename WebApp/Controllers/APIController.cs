@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using DBHelper;
@@ -12,7 +13,6 @@ namespace WebApp.Controllers
         private readonly IDbHelper _db;
 
         /* HELPER FUNCTIONS */
-
         // Jsonify takes a string and packages it as a JSON object under the "content" key.
         private JsonResult Jsonify(string content) => Json($"{{ content: '{content}' }}");
 
@@ -37,7 +37,7 @@ namespace WebApp.Controllers
         }
 
         // POST: api/user/register
-        // POST requests to this URI containing RegistrationViewModel data will create a new user
+        // Create new user in db >> return a TOKEN
         [HttpPost, Route("user/register")]
         public ActionResult RegisterUser(RegistrationViewModel model)
         {
@@ -55,9 +55,8 @@ namespace WebApp.Controllers
             return token != null ? Json(new { content = token }) : BadRequest("Registration failed");
         }
 
-        // POST: api/login
-        // POST requests at this URI containing a LoginViewModel will authenticate the user
-        // and return the user's token
+        // POST: api/login 
+        // Authenticate user >> return a TOKEN
         [HttpPost]
         public ActionResult Login(LoginViewModel model)
         {
@@ -68,8 +67,8 @@ namespace WebApp.Controllers
             return token != null ? Json(new {content=token}) : BadRequest("Invalid login");
         }
 
-        // DELETE: api/user/delete/id
-        // DELETE requests at this URI will delete a user from the database based on their ID
+        // DELETE: api/user/delete/id 
+        // Delete a user from db with ID >> Return OK
         [HttpDelete, Route("user/delete/{id}")]
         public ActionResult DeleteUser(int id)
         {
@@ -83,11 +82,30 @@ namespace WebApp.Controllers
         }
 
         // GET: api/users/all
-        // INSECURE!!! GET requests at this URI will return a JSON object containing all User objects in the database
+        // INSECURE! >> return User list  
         [HttpGet, Route("users/all")]
         public JsonResult GetAllUsers()
         {
             return Json(_db.GetAllUsers(), JsonRequestBehavior.AllowGet);
         }
+
+        // PUT: api/user/update/pwd 
+        // User update their password >> Return OK
+        [HttpPut, Route("user/update/pwd")]
+        public ActionResult UpdateUserPassword(String inToken)
+        {
+            var users = _db.GetAllUsers();
+            var user = users?.FirstOrDefault(u => u.Id.Equals(inToken));
+
+            if (user == null){
+                return BadRequest("Update failed");
+            }
+            else{
+                //update password
+            }
+
+            return Ok("Completed");
+        }
+
     }
 }
